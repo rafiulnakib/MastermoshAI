@@ -18,7 +18,7 @@ def main():
     with col2:
         # Display 'About Me' section
         st.header('About Me')
-        st.write('Hi there!')
+        st.write('Just a curious cat in superposition!')
 
         # Display 'Contact Information' section
         st.header('Contact Information')
