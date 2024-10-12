@@ -6,6 +6,9 @@ import time
 import logging
 import streamlit as st
 
+# load_dotenv()
+# client = OpenAI()
+
 api_key = st.secrets["openai"]["api_key"]
 client = OpenAI(api_key=api_key)
 
