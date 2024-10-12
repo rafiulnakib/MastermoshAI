@@ -6,11 +6,11 @@ import time
 import logging
 import streamlit as st
 
-# load_dotenv()
-# client = OpenAI()
+load_dotenv()
+client = OpenAI()
 
-api_key = st.secrets["openai"]["api_key"]
-client = OpenAI(api_key=api_key)
+# api_key = st.secrets["openai"]["api_key"]
+# client = OpenAI(api_key=api_key)
 
 ass_id = "asst_BJwfKr5czXKwSWYsaVnsF8ox"
 
@@ -22,8 +22,8 @@ def main():
         st.session_state.start_chat = False
     if "thread_id" not in st.session_state:
         st.session_state.thread_id = None
-
-    # Removed the button from the sidebar and will place it in col2
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
 
     # Function to process messages with citations and handle long responses
     def process_message_with_citations(message):
@@ -69,37 +69,20 @@ def main():
         return None
 
     # Main interface
-    st.title("Lesson 1 - MastermoshAI")
+    st.title("Newton's 2nd Law")
 
-    # Create two columns: left for video, right for chat
-    col1, col2 = st.columns([7, 3])  # Adjust the width ratios as needed
+    # Sidebar for chat
+    with st.sidebar:
+        st.header("MastermoshAI")
 
-    with col1:
-        # Video section on the left
-        video_file = open('IMG_4257.MOV', 'rb')
-        video_bytes = video_file.read()
-        st.video(video_bytes)
-
-    with col2:
-        # Moved the "Ask anything about the lesson" button here
-        if st.button("Ask anything about the lesson"):
-            if st.session_state.file_id_list:
-                st.session_state.start_chat = True
-                chat_thread = client.beta.threads.create()
-                st.session_state.thread_id = chat_thread.id
-            else:
-                st.session_state.start_chat = True
-                if not st.session_state.thread_id:
-                    chat_thread = client.beta.threads.create()
-                    st.session_state.thread_id = chat_thread.id
-                    st.write("Thread ID:", chat_thread.id)
+        # Automatically start chat session if not already started
+        if not st.session_state.start_chat:
+            st.session_state.start_chat = True
 
         # Chat session
         if st.session_state.start_chat:
             if "openai_model" not in st.session_state:
                 st.session_state.openai_model = "gpt-4o-mini"
-            if "messages" not in st.session_state:
-                st.session_state.messages = []
 
             # Display existing messages
             for message in st.session_state.messages:
@@ -107,10 +90,17 @@ def main():
                     st.markdown(message["content"])
 
             # Chat input for user
-            if prompt := st.chat_input("Ask"):
+            prompt = st.chat_input("Ask")
+            if prompt:
                 st.session_state.messages.append({"role": "user", "content": prompt})
                 with st.chat_message("user"):
                     st.markdown(prompt)
+
+                # Initialize thread if not already done
+                if not st.session_state.thread_id:
+                    chat_thread = client.beta.threads.create()
+                    st.session_state.thread_id = chat_thread.id
+                    st.write("Thread ID:", chat_thread.id)
 
                 client.beta.threads.messages.create(
                     thread_id=st.session_state.thread_id, role="user", content=prompt
@@ -120,7 +110,8 @@ def main():
                 run = client.beta.threads.runs.create(
                     thread_id=st.session_state.thread_id,
                     assistant_id=ass_id,
-                    instructions="""
+                    instructions="""You are a helpful tutor. However, you only and only answer questions related to Pythagorean theorem, and nothing else.
+
                                 Writing math formulas:
                                 Start all mathematical equations with the $ delimiters, no exception.
                                 For every single mathematical equation, use a new line.
@@ -157,3 +148,15 @@ def main():
                                 )
                                 with st.chat_message("assistant"):
                                     st.markdown(chunk, unsafe_allow_html=True)
+
+    # Main area for video
+    video_file_path = 'IMG_4257.MOV'
+    if os.path.exists(video_file_path):
+        with open(video_file_path, 'rb') as video_file:
+            video_bytes = video_file.read()
+            st.video(video_bytes)
+    else:
+        st.error(f"Video file '{video_file_path}' not found.")
+
+if __name__ == "__main__":
+    main()

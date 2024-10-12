@@ -18,32 +18,62 @@ hide_streamlit_style = """
     """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
-# Create the main navigation menu with the new tabs
-selected = option_menu(
-    menu_title=None,
-    options=["Home", "Profile", "Friends", "Study"],
-    icons=["house", "person", "people", "book"],
-    menu_icon="cast",
-    default_index=0,
-    orientation="horizontal",
-    styles={
-        "container": {"padding": "0!important", "background-color": "#333"},
-        "icon": {"color": "white", "font-size": "20px"},
-        "nav-link": {
-            "font-size": "20px",
-            "text-align": "center",
-            "margin": "0px",
-            "color": "white",
-            "padding": "10px 12px",
-            "background-color": "#333",
+# Define the logo HTML
+logo_html = """
+    <div style="text-align: center; margin-bottom: 20px;">
+        <h1 style="
+            font-family: 'Arial Black', Gadget, sans-serif;
+            color: #FFFFFF;
+            text-shadow: 2px 2px #000000;
+        ">
+            MastermoshAI
+        </h1>
+    </div>
+    """
+
+# Add a dark background for the header and navigation
+header_style = """
+    <style>
+    .header-container {
+        background-color: #333333;
+        padding: 20px;
+    }
+    </style>
+    """
+
+st.markdown(header_style, unsafe_allow_html=True)
+
+# Create a container for the logo and navigation
+with st.container():
+    # Display the logo
+    st.markdown(logo_html, unsafe_allow_html=True)
+    
+    # Create the main navigation menu with the new tabs
+    selected = option_menu(
+        menu_title=None,
+        options=["Home", "Profile", "Friends", "Study"],
+        icons=["house", "person", "people", "book"],
+        menu_icon="cast",
+        default_index=0,
+        orientation="horizontal",
+        styles={
+            "container": {"padding": "0!important", "background-color": "#333"},
+            "icon": {"color": "white", "font-size": "20px"},
+            "nav-link": {
+                "font-size": "20px",
+                "text-align": "center",
+                "margin": "0px",
+                "color": "white",
+                "padding": "10px 12px",
+                "background-color": "#333",
+            },
+            "nav-link-selected": {"background-color": "#555"},
         },
-        "nav-link-selected": {"background-color": "#555"},
-    },
-)
+    )
 
 # Handle navigation logic
 if selected == "Home":
-    st.title('Welcome to MastermoshAI')
+    # st.title('Welcome to MastermoshAI')
 
     # Generate 25 dummy activity records
     import random
