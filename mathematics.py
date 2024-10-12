@@ -120,8 +120,7 @@ def main():
                 run = client.beta.threads.runs.create(
                     thread_id=st.session_state.thread_id,
                     assistant_id=ass_id,
-                    instructions="""You are a helpful tutor. However, you only and only answer questions related to Pythagorean theorem, and nothing else.
-
+                    instructions="""
                                 Writing math formulas:
                                 Start all mathematical equations with the $ delimiters, no exception.
                                 For every single mathematical equation, use a new line.
