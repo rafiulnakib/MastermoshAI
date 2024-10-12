@@ -9,6 +9,7 @@ import streamlit as st
 # load_dotenv()
 # client = OpenAI()
 
+# Uncomment and set your API key if needed
 api_key = st.secrets["openai"]["api_key"]
 client = OpenAI(api_key=api_key)
 
@@ -19,9 +20,11 @@ def main():
     if "file_id_list" not in st.session_state:
         st.session_state.file_id_list = []
     if "start_chat" not in st.session_state:
-        st.session_state.start_chat = False
+        st.session_state.start_chat = True  # Start chat by default
     if "thread_id" not in st.session_state:
         st.session_state.thread_id = None
+    if "openai_model" not in st.session_state:
+        st.session_state.openai_model = "gpt-4o-mini"
     if "messages" not in st.session_state:
         st.session_state.messages = []
 
@@ -71,19 +74,24 @@ def main():
     # Main interface
     st.title("Newton's 2nd Law")
 
-    # Sidebar for chat
-    with st.sidebar:
-        st.header("MastermoshAI")
+    # Create two columns: left for video, right for chat
+    col1, col2 = st.columns([7, 3])  # Adjust the width ratios as needed
 
-        # Automatically start chat session if not already started
-        if not st.session_state.start_chat:
-            st.session_state.start_chat = True
+    with col1:
+        # Video section on the left
+        video_file_path = 'IMG_4257.MOV'
+        if os.path.exists(video_file_path):
+            with open(video_file_path, 'rb') as video_file:
+                video_bytes = video_file.read()
+                st.video(video_bytes)
+        else:
+            st.error(f"Video file '{video_file_path}' not found.")
+
+    with col2:
+        # st.header("Chat Interface")
 
         # Chat session
         if st.session_state.start_chat:
-            if "openai_model" not in st.session_state:
-                st.session_state.openai_model = "gpt-4o-mini"
-
             # Display existing messages
             for message in st.session_state.messages:
                 with st.chat_message(message["role"]):
@@ -92,16 +100,18 @@ def main():
             # Chat input for user
             prompt = st.chat_input("Ask")
             if prompt:
+                # If thread_id is not set, create a new thread
+                if not st.session_state.thread_id:
+                    chat_thread = client.beta.threads.create()
+                    st.session_state.thread_id = chat_thread.id
+                    logging.info(f"Created new thread with ID: {chat_thread.id}")
+
+                # Append user message to session state
                 st.session_state.messages.append({"role": "user", "content": prompt})
                 with st.chat_message("user"):
                     st.markdown(prompt)
 
-                # Initialize thread if not already done
-                if not st.session_state.thread_id:
-                    chat_thread = client.beta.threads.create()
-                    st.session_state.thread_id = chat_thread.id
-                    st.write("Thread ID:", chat_thread.id)
-
+                # Send user message to OpenAI
                 client.beta.threads.messages.create(
                     thread_id=st.session_state.thread_id, role="user", content=prompt
                 )
@@ -148,15 +158,6 @@ def main():
                                 )
                                 with st.chat_message("assistant"):
                                     st.markdown(chunk, unsafe_allow_html=True)
-
-    # Main area for video
-    video_file_path = 'IMG_4257.MOV'
-    if os.path.exists(video_file_path):
-        with open(video_file_path, 'rb') as video_file:
-            video_bytes = video_file.read()
-            st.video(video_bytes)
-    else:
-        st.error(f"Video file '{video_file_path}' not found.")
 
 if __name__ == "__main__":
     main()
