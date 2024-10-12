@@ -23,7 +23,7 @@ logo_html = """
     <div style="text-align: center; margin-bottom: 20px;">
         <h1 style="
             font-family: 'Arial Black', Gadget, sans-serif;
-            color: #FFFFFF;
+            color: #1E90FF; /* Updated color: Dodger Blue */
             text-shadow: 2px 2px #000000;
         ">
             MastermoshAI
