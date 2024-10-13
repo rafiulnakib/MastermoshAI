@@ -89,7 +89,7 @@ def main():
 
     with col2:
         # prompt = st.chat_input("Ask")
-        with st.container(border=True, height=475):
+        with st.container(border=True, height=430):
             # st.header("Chat Interface")
 
             # Chat session
