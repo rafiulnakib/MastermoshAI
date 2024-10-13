@@ -72,7 +72,7 @@ def main():
         return None
 
     # Main interface
-    st.title("Newton's 2nd Law")
+    st.title("Pythagorean Theorem")
 
     # Create two columns: left for video, right for chat
     col1, col2 = st.columns([7, 3])  # Adjust the width ratios as needed
@@ -89,7 +89,7 @@ def main():
 
     with col2:
         # prompt = st.chat_input("Ask")
-        with st.container(border=True, height=575):
+        with st.container(border=True, height=475):
             # st.header("Chat Interface")
 
             # Chat session
