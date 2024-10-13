@@ -79,7 +79,7 @@ def main():
 
     with col1:
         # Video section on the left
-        video_file_path = 'IMG_4257.MOV'
+        video_file_path = 'Math.mp4'
         if os.path.exists(video_file_path):
             with open(video_file_path, 'rb') as video_file:
                 video_bytes = video_file.read()
@@ -88,76 +88,78 @@ def main():
             st.error(f"Video file '{video_file_path}' not found.")
 
     with col2:
-        # st.header("Chat Interface")
+        # prompt = st.chat_input("Ask")
+        with st.container(border=True, height=575):
+            # st.header("Chat Interface")
 
-        # Chat session
-        if st.session_state.start_chat:
+            # Chat session
+            # if st.session_state.start_chat:
             # Display existing messages
             for message in st.session_state.messages:
                 with st.chat_message(message["role"]):
                     st.markdown(message["content"])
 
-            # Chat input for user
-            prompt = st.chat_input("Ask")
-            if prompt:
-                # If thread_id is not set, create a new thread
-                if not st.session_state.thread_id:
-                    chat_thread = client.beta.threads.create()
-                    st.session_state.thread_id = chat_thread.id
-                    logging.info(f"Created new thread with ID: {chat_thread.id}")
+        # Chat input for user
+        # prompt = st.chat_input("Ask")
+        if prompt := st.chat_input("Ask"):
+            # If thread_id is not set, create a new thread
+            if not st.session_state.thread_id:
+                chat_thread = client.beta.threads.create()
+                st.session_state.thread_id = chat_thread.id
+                logging.info(f"Created new thread with ID: {chat_thread.id}")
 
-                # Append user message to session state
-                st.session_state.messages.append({"role": "user", "content": prompt})
-                with st.chat_message("user"):
-                    st.markdown(prompt)
+            # Append user message to session state
+            st.session_state.messages.append({"role": "user", "content": prompt})
+            with st.chat_message("user"):
+                st.markdown(prompt)
 
-                # Send user message to OpenAI
-                client.beta.threads.messages.create(
-                    thread_id=st.session_state.thread_id, role="user", content=prompt
+            # Send user message to OpenAI
+            client.beta.threads.messages.create(
+                thread_id=st.session_state.thread_id, role="user", content=prompt
+            )
+
+            # Create a run with additional instructions
+            run = client.beta.threads.runs.create(
+                thread_id=st.session_state.thread_id,
+                assistant_id=ass_id,
+                instructions="""You are a helpful tutor. However, you only and only answer questions related to Pythagorean theorem, and nothing else.
+
+                            Writing math formulas:
+                            Start all mathematical equations with the $ delimiters, no exception.
+                            For every single mathematical equation, use a new line.
+                            You have a MathJax render environment.
+                            - Any LaTeX text between single dollar sign ($) will be rendered as a TeX formula; no exception.
+                            - Use $(tex_formula)$ in-line delimiters to display equations instead of backslash; no exception.
+                            - The render environment only uses $ (single dollarsign) as a container delimiter, never output $$, no exception.
+
+                            Example: $x^2 + 3x$ is output for "x² + 3x" to appear as TeX.
+
+                            PHYSICAL AND MATHEMATICAL UNITS SHOULD ALWAYS BE IN ENGLISH.""",
+            )
+
+            with st.spinner("Please wait a bit..."):
+                run = wait_for_run_completion(
+                    thread_id=st.session_state.thread_id, run_id=run.id, timeout=60
                 )
 
-                # Create a run with additional instructions
-                run = client.beta.threads.runs.create(
-                    thread_id=st.session_state.thread_id,
-                    assistant_id=ass_id,
-                    instructions="""You are a helpful tutor. However, you only and only answer questions related to Pythagorean theorem, and nothing else.
-
-                                Writing math formulas:
-                                Start all mathematical equations with the $ delimiters, no exception.
-                                For every single mathematical equation, use a new line.
-                                You have a MathJax render environment.
-                                - Any LaTeX text between single dollar sign ($) will be rendered as a TeX formula; no exception.
-                                - Use $(tex_formula)$ in-line delimiters to display equations instead of backslash; no exception.
-                                - The render environment only uses $ (single dollarsign) as a container delimiter, never output $$, no exception.
-
-                                Example: $x^2 + 3x$ is output for "x² + 3x" to appear as TeX.
-
-                                PHYSICAL AND MATHEMATICAL UNITS SHOULD ALWAYS BE IN ENGLISH.""",
-                )
-
-                with st.spinner("Please wait a bit..."):
-                    run = wait_for_run_completion(
-                        thread_id=st.session_state.thread_id, run_id=run.id, timeout=60
+                if run:
+                    messages = client.beta.threads.messages.list(
+                        thread_id=st.session_state.thread_id
                     )
+                    assistant_messages_for_run = [
+                        message
+                        for message in messages
+                        if message.run_id == run.id and message.role == "assistant"
+                    ]
 
-                    if run:
-                        messages = client.beta.threads.messages.list(
-                            thread_id=st.session_state.thread_id
-                        )
-                        assistant_messages_for_run = [
-                            message
-                            for message in messages
-                            if message.run_id == run.id and message.role == "assistant"
-                        ]
-
-                        for message in assistant_messages_for_run:
-                            response_chunks = process_message_with_citations(message=message)
-                            for chunk in response_chunks:
-                                st.session_state.messages.append(
-                                    {"role": "assistant", "content": chunk}
-                                )
-                                with st.chat_message("assistant"):
-                                    st.markdown(chunk, unsafe_allow_html=True)
+                    for message in assistant_messages_for_run:
+                        response_chunks = process_message_with_citations(message=message)
+                        for chunk in response_chunks:
+                            st.session_state.messages.append(
+                                {"role": "assistant", "content": chunk}
+                            )
+                            with st.chat_message("assistant"):
+                                st.markdown(chunk, unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
